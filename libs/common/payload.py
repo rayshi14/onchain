@@ -15,7 +15,7 @@ def get_erc20_balance_payload(id, token_contract, wallet, block_number):
     return payload
 
 # get eth balance
-def get_eth_balance_payload(id, token_contract, wallet, block_number):
+def get_eth_balance_payload(id, wallet, block_number):
     payload = {
         "id":0,
         "jsonrpc":"2.0",

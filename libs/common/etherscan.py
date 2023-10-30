@@ -1,7 +1,7 @@
 import requests
 from web3 import Web3
 
-node_url = "http://localhost:8545"
+node_url = "https://stylish-wider-patina.quiknode.pro/274049e810f4dee5f0807cd426196aeafd438838/"
 w3 = Web3(Web3.HTTPProvider(node_url))
 
 # get contract abi
