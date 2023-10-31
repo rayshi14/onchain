@@ -53,5 +53,20 @@ def get_eth_logs_by_block_payload(id, from_block, to_block):
         ]
     }
     return payload
+
+def get_eth_logs_by_block_address_payload(id, from_block, to_block, addresses):
+    payload = {
+        "id":id,
+        "jsonrpc":"2.0",
+        "method":"eth_getLogs",
+        "params": [
+            {
+                "fromBlock":hex(from_block),
+                "toBlock":hex(to_block),
+                "address":addresses
+            }
+        ]
+    }
+    return payload
     
     
