@@ -83,5 +83,30 @@ def eth_logs_by_block_address_payload(id, from_block, to_block, addresses):
         ]
     }
     return payload
+
+# generic payload for function calls
+def func_call_payload(id, contract_address, function_sig, block_number, values):
+    func_hex = utils.get_function_hex(function_sig)
+    param_types = utils.get_function_param_types(function_sig)
+    assert len(param_types) == len(values)
+    data = func_hex
     
+    for t, v in zip(param_types,values):
+        if type(v) == str: # address
+            data += v[2:].zfill(64)
+        else:
+            data += hex(v)[2:].zfill(64)
     
+    payload = {
+        "id":0,
+        "jsonrpc":"2.0",
+        "method":"eth_call",
+        "params": [
+            {
+                "to": contract_address,
+                "data": data
+            },
+            block_number
+        ]
+    }
+    return payload
