@@ -1,3 +1,5 @@
+import libs.common.utils as utils
+
 # get erc20 balance
 def erc20_balance_payload(id, token_contract, wallet, block_number):
     payload = {
