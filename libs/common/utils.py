@@ -7,7 +7,10 @@ def get_function_hex(function_sig): # function_sig = "balanceOf(address)"
     return Web3.keccak(text=function_sig)[:4].hex()
 
 def get_function_param_types(function_sig): # function_sig = "balanceOf(address)"
-    return function_sig[function_sig.find('(') + 1:function_sig.find(')')].split(',')
+    ret = function_sig[function_sig.find('(') + 1:function_sig.find(')')]
+    if len(ret) == 0:
+        return []
+    return ret.split(',')
 
 def get_log_topic(log_sig): # log_sig = "Transfer(address,address,uint256)"
     return Web3.keccak(text=log_sig).hex()
