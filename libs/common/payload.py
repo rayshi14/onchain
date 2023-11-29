@@ -87,7 +87,8 @@ def eth_logs_by_block_address_payload(id, from_block, to_block, addresses):
     return payload
 
 # generic payload for function calls
-def func_call_payload(id, contract_address, function_name, inputs, values, block_number):
+def func_call_payload(id, contract_address, function_name, function_abi, values, block_number):
+    inputs = function_abi["inputs"]
     assert set(inputs.keys()) == set(values.keys())
     function_sig = function_name + "(" + ",".join(inputs.values()) + ")"
     func_hex = utils.get_function_hex(function_sig)
