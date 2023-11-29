@@ -88,13 +88,13 @@ def eth_logs_by_block_address_payload(id, from_block, to_block, addresses):
 
 # generic payload for function calls
 def func_call_payload(id, contract_address, function_name, inputs, values, block_number):
-    assert len(inputs) == len(values)
+    assert set(inputs.keys()) == set(values.keys())
     function_sig = function_name + "(" + ",".join(inputs.values()) + ")"
     func_hex = utils.get_function_hex(function_sig)
     data = func_hex
     
     for inp in inputs:
-        if type(values[inp]) == str: # address
+        if inputs[inp] == "address": # address
             data += values[inp][2:].zfill(64)
         else:
             data += hex(values[inp])[2:].zfill(64)
