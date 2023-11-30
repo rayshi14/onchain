@@ -97,6 +97,8 @@ def func_call_payload(id, contract_address, function_name, function_abi, values,
     for inp in inputs:
         if inputs[inp] == "address": # address
             data += values[inp][2:].zfill(64)
+        elif "int" in inputs[inp]:
+            data += hex(int(values[inp]))[2:].zfill(64)
         else:
             data += hex(values[inp])[2:].zfill(64)
             

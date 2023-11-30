@@ -1,6 +1,8 @@
 from django.shortcuts import render, redirect
-from .forms import AbiForm
 from django.http import HttpResponse
+from django.views.decorators.csrf import csrf_exempt
+
+from .forms import AbiForm
 
 from datetime import datetime
 import hashlib
@@ -66,11 +68,23 @@ def contract_abi(request, contract_address):
     s = s.query(query)
     
     response = s.execute()
-    data = json.dumps(response.to_dict())
+    data = json.dumps(response.to_dict()["hits"]["hits"][0])
     return HttpResponse(data, content_type='application/json')
   
 def function_abi(request, contract_address, function_name):
-    data = json.dumps({"contract_address":contract_address,"function":function_name})
+    index_name = 'abi'
+    s = Search(using=es, index=index_name)
+    query = Q('bool',
+        must=[
+            Q('match', address=contract_address),
+            Q('match', type='function'), 
+            Q('match', name=function_name), 
+        ]
+    )
+    s = s.query(query)
+    
+    response = s.execute()
+    data = json.dumps(response.to_dict()["hits"]["hits"][0])
     return HttpResponse(data, content_type='application/json')
   
 def event_abi(request, contract_address, event_name):
@@ -97,6 +111,19 @@ def add_abi(request):
         form = AbiForm()
 
     return render(request, 'abi/add_abi_template.html', {'form': form, 'success_message': success_message, 'error_message': error_message})
+
+@csrf_exempt
+def call_abi(request):
+    if request.method == 'POST':
+        params = json.loads(request.body)
+        contract_addr = params["contract"]
+        function_name = params["name"]
+        
+        # get function abi
+        # 
+        return render(request, 'abi/call_abi_template.html')
+    else:
+        return render(request, 'abi/call_abi_template.html')
   
 def index(request):
     index_name = 'abi'

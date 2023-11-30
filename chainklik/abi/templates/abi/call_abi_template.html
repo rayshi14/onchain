@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Form</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>My Form</h1>
+    <input type="text" id="contract-addr">
+    <button id="generate-function-list">Select</button>
+    <div id="function-list-container"></div>
+    <div id="function-parameters-form"></div>
+    <button id='function-call'>call</button>
+    <script>
+        $(document).ready(function () {
+            $('#generate-function-list').on('click', function () {
+                var contractAddr = $('#contract-addr').val();
+                fetch('/abi/data/' + contractAddr)
+                    .then((response) => response.json())
+                    .then((data) => {
+                        console.log(data['_source']['abi']);    
+                        const listContainer = document.getElementById('function-list-container');
+                        const ul = document.createElement('ul');
+                        function onItemClick(event) {
+                            console.log("You clicked on item: " + event.target.textContent);
+                            fetch('/abi/data/' + contractAddr + '/function/' + event.target.textContent)
+                                .then((response) => response.json())
+                                .then((data) => {
+                                    console.log(data['_source']['abi']);
+                                    // get parameters
+                                    const form = document.getElementById('function-parameters-form');
+                                    form.innerHTML = "";
+                                    const h3 = document.createElement('h3');
+                                    h3.id = "function-selected";
+                                    h3.textContent = data['_source']['abi']['name'];
+                                    form.appendChild(h3);
+                                    
+                                    data['_source']['abi']['inputs'].forEach((item) => {
+                                        var inputElement = document.createElement("input");
+                                        inputElement.type = 'text';
+                                        inputElement.id = 'param-' + item['name'];
+                                        inputElement.name = item['name'];
+                                        inputElement.placeholder = item['type'];
+                                        var labelElement = document.createElement("label");
+                                        labelElement.setAttribute("for", 'param-' + item['name']);
+                                        labelElement.textContent = item['name'];
+                                        form.appendChild(labelElement);
+                                        form.appendChild(inputElement);
+                                    });
+                                }).catch((error) => {
+                                    console.error('Error fetching data:', error);
+                                });
+                        }
+                        data['_source']['abi'].forEach((item) => {
+                            if (item["type"] == "function") {
+                                const li = document.createElement('li');
+                                li.textContent = item["name"];
+                                li.onclick = onItemClick;
+                                ul.appendChild(li);
+                            }
+                        });
+
+                        listContainer.appendChild(ul);
+                    })
+                    .catch((error) => {
+                        console.error('Error fetching data:', error);
+                    });  
+            });
+            $('#function-call').on('click', function () {
+                const form = document.getElementById('function-parameters-form');
+                var inputFields = form.querySelectorAll("input");
+                var params = {};
+                inputFields.forEach(function (input) {
+                    params[input.name] = input.value;
+                });
+                
+                params["name"] = document.getElementById('function-selected').innerHTML;
+                params["contract"] = document.getElementById('contract-addr').value;
+              
+                console.log(params);
+                const requestOptions = {
+                    method: 'POST', // Use the POST method
+                    headers: {
+                        'Content-Type': 'application/json', // Set the content type to JSON
+                    },
+                    body: JSON.stringify(params), // Convert data to JSON format
+                };
+                
+                fetch('/abi/api/call_abi/', requestOptions)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json(); // Parse the response JSON if needed
+                    })
+                    .then(data => {
+                        // Handle the response data here (e.g., display it on the page)
+                        console.log('Response:', data);
+                    })
+                    .catch(error => {
+                        // Handle errors here
+                        console.error('Error:', error);
+                    });
+            });
+        });
+    </script>
+</body>
+</html>
