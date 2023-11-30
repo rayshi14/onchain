@@ -13,6 +13,8 @@ from elasticsearch_dsl import Search, Q
 
 # local modules
 import libs.common.etherscan as etherscan
+import libs.common.payload as payload
+import eth_abi
 
 es = Elasticsearch("https://localhost:9200",http_auth=('elastic', 'y=fUp=8ucKL18I5K=1Am'),verify_certs=False)
 
@@ -119,6 +121,10 @@ def call_abi(request):
         contract_addr = params["contract"]
         function_name = params["name"]
         
+        def parse_function_abi(function_abi):
+            inputs = {(inp["name"] if inp["name"] != "" else "value"):inp["type"] for inp in function_abi["inputs"]}
+            outputs = {(out["name"] if out["name"] != "" else "value"):out["type"] for out in function_abi["outputs"]}
+            return {"inputs":inputs,"outputs":outputs}
         # get function abi
         # 
         return render(request, 'abi/call_abi_template.html')
