@@ -7,6 +7,8 @@ from .forms import AbiForm
 from datetime import datetime
 import hashlib
 import json
+import web3
+import requests
 
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search, Q
@@ -14,9 +16,12 @@ from elasticsearch_dsl import Search, Q
 # local modules
 import libs.common.etherscan as etherscan
 import libs.common.payload as payload
+import config.config as cfg
 import eth_abi
 
 es = Elasticsearch("https://localhost:9200",http_auth=('elastic', 'y=fUp=8ucKL18I5K=1Am'),verify_certs=False)
+w3 = web3.Web3(web3.Web3.HTTPProvider(cfg.config["http_url"]))
+
 
 def add_contract_abi(contract_addr, impl_addr, contract_name, author = "rshi"):
     def doc_id(contract_addr, abi):
@@ -117,17 +122,46 @@ def add_abi(request):
 @csrf_exempt
 def call_abi(request):
     if request.method == 'POST':
-        params = json.loads(request.body)
-        contract_addr = params["contract"]
-        function_name = params["name"]
+        data = json.loads(request.body)
+        contract_address = data["contract"]
+        function_name = data["name"]
+        params = data["params"]
+        print(params)
+        # get function abi
+        index_name = 'abi'
+        s = Search(using=es, index=index_name)
+        query = Q('bool',
+            must=[
+                Q('match', address=contract_address),
+                Q('match', type='function'), 
+                Q('match', name=function_name), 
+            ]
+        )
+        s = s.query(query)
+
+        response = s.execute()
         
         def parse_function_abi(function_abi):
             inputs = {(inp["name"] if inp["name"] != "" else "value"):inp["type"] for inp in function_abi["inputs"]}
             outputs = {(out["name"] if out["name"] != "" else "value"):out["type"] for out in function_abi["outputs"]}
             return {"inputs":inputs,"outputs":outputs}
-        # get function abi
-        # 
-        return render(request, 'abi/call_abi_template.html')
+        
+        function_abi = parse_function_abi(response.to_dict()["hits"]["hits"][0]["_source"]["abi"])
+        
+        def function_call(contract_address, function_name, function_abi, params, block_number):
+            val = payload.func_call_payload(0, contract_address, function_name, function_abi, params, block_number)
+            resp = requests.post(cfg.config["http_url"], json=val)
+
+            outputs = function_abi["outputs"]
+            values = eth_abi.decode(list(outputs.values()), bytes.fromhex(resp.json()["result"][2:]))
+            keys = list(outputs.keys())
+            result = {keys[i]: values[i] for i in range(len(keys))}
+            return result
+        
+        result = function_call(contract_address, function_name, function_abi, params, hex(w3.eth.get_block("latest")["number"]))
+        print(result)
+        data = json.dumps(result)
+        return HttpResponse(data, content_type='application/json')
     else:
         return render(request, 'abi/call_abi_template.html')
   

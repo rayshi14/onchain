@@ -5,12 +5,12 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
-    <h1>My Form</h1>
     <input type="text" id="contract-addr">
     <button id="generate-function-list">Select</button>
     <div id="function-list-container"></div>
     <div id="function-parameters-form"></div>
     <button id='function-call'>call</button>
+    <div id="function-call-response"></div>
     <script>
         $(document).ready(function () {
             $('#generate-function-list').on('click', function () {
@@ -69,21 +69,22 @@
             $('#function-call').on('click', function () {
                 const form = document.getElementById('function-parameters-form');
                 var inputFields = form.querySelectorAll("input");
+                var data = {};
                 var params = {};
                 inputFields.forEach(function (input) {
                     params[input.name] = input.value;
                 });
                 
-                params["name"] = document.getElementById('function-selected').innerHTML;
-                params["contract"] = document.getElementById('contract-addr').value;
-              
-                console.log(params);
+                data["name"] = document.getElementById('function-selected').innerHTML;
+                data["contract"] = document.getElementById('contract-addr').value;
+                data["params"] = params;
+                console.log(data);
                 const requestOptions = {
                     method: 'POST', // Use the POST method
                     headers: {
                         'Content-Type': 'application/json', // Set the content type to JSON
                     },
-                    body: JSON.stringify(params), // Convert data to JSON format
+                    body: JSON.stringify(data), // Convert data to JSON format
                 };
                 
                 fetch('/abi/api/call_abi/', requestOptions)
@@ -96,6 +97,16 @@
                     .then(data => {
                         // Handle the response data here (e.g., display it on the page)
                         console.log('Response:', data);
+                  
+                        const listContainer = document.getElementById('function-call-response');
+                        listContainer.innerHTML = "";
+                        const ul = document.createElement('ul');
+                        for (var key in data){
+                            const li = document.createElement('li');
+                            li.textContent = key + ":" + data[key];
+                            ul.appendChild(li);
+                        }
+                        listContainer.appendChild(ul);
                     })
                     .catch(error => {
                         // Handle errors here
