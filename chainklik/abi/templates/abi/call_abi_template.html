@@ -52,7 +52,7 @@
                                 });
                         }
                         data['_source']['abi'].forEach((item) => {
-                            if (item["type"] == "function") {
+                            if (item["type"] == "function" && item["stateMutability"] == "view") {
                                 const li = document.createElement('li');
                                 li.textContent = item["name"];
                                 li.onclick = onItemClick;

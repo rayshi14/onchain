@@ -56,6 +56,9 @@ def add_contract_abi(contract_addr, impl_addr, contract_name, author = "rshi"):
                 'name' : abi["name"],
                 'abi': abi
             }
+            if abi["type"] == "function":
+                doc["stateMutability"] = abi["stateMutability"]
+            
             resp = es.index(index='abi', id=doc['id'], document=doc)
             res.append(resp)
     return res
@@ -85,7 +88,7 @@ def function_abi(request, contract_address, function_name):
         must=[
             Q('match', address=contract_address),
             Q('match', type='function'), 
-            Q('match', name=function_name), 
+            Q('match', name=function_name)
         ]
     )
     s = s.query(query)
@@ -134,7 +137,7 @@ def call_abi(request):
             must=[
                 Q('match', address=contract_address),
                 Q('match', type='function'), 
-                Q('match', name=function_name), 
+                Q('match', name=function_name)
             ]
         )
         s = s.query(query)
@@ -142,11 +145,13 @@ def call_abi(request):
         response = s.execute()
         
         def parse_function_abi(function_abi):
-            inputs = {(inp["name"] if inp["name"] != "" else "value"):inp["type"] for inp in function_abi["inputs"]}
+            inputs = {inp["name"]:inp["type"] for inp in function_abi["inputs"]}
             outputs = {(out["name"] if out["name"] != "" else "value"):out["type"] for out in function_abi["outputs"]}
             return {"inputs":inputs,"outputs":outputs}
         
         function_abi = parse_function_abi(response.to_dict()["hits"]["hits"][0]["_source"]["abi"])
+        
+        print(function_abi)
         
         def function_call(contract_address, function_name, function_abi, params, block_number):
             val = payload.func_call_payload(0, contract_address, function_name, function_abi, params, block_number)
@@ -158,6 +163,7 @@ def call_abi(request):
             result = {keys[i]: values[i] for i in range(len(keys))}
             return result
         
+        print(params)
         result = function_call(contract_address, function_name, function_abi, params, hex(w3.eth.get_block("latest")["number"]))
         print(result)
         data = json.dumps(result)
