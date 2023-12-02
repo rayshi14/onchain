@@ -8,5 +8,6 @@ urlpatterns = [
     path("data/<str:contract_address>/function/<str:function_name>/", views.function_abi, name="function_abi"),
     path("data/<str:contract_address>/event/<str:event_name>/", views.event_abi, name="event_abi"),
     path('api/add_abi/', views.add_abi, name='add_abi'),
-    path('api/call_abi/', views.call_abi, name='call_abi')
+    path('api/call_abi/', views.call_abi, name='call_abi'),
+    path('api/search_abi/<str:keywords>/', views.search_abi, name='search_abi')
 ]

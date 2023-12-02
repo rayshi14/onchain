@@ -186,3 +186,19 @@ def index(request):
         abis.append(hit.to_dict())
     
     return render(request, 'abi/index_template.html', {'abis': abis})
+  
+def search_abi(request, keywords):
+    index_name = 'abi'
+    s = Search(using=es, index=index_name)
+    keywords = keywords.split()
+    keyword_queries = []
+    
+    for keyword in keywords:
+        keyword_queries.append(Q("multi_match", query=keyword, fields=["_all"]))
+
+    combined_query = Q('bool', should=keyword_queries)
+    s = s.query(combined_query)
+    
+    response = s.execute()
+    data = json.dumps(response.to_dict()["hits"]["hits"])
+    return HttpResponse(data, content_type='application/json')
