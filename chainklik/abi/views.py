@@ -188,42 +188,39 @@ def index(request):
     
     return render(request, 'abi/index_template.html', {'abis': abis})
 
+def search_abi_with_keywords(keywords):
+    print(keywords)
+    index_name = 'abi'
+    s = Search(using=es, index=index_name)
+    keyword_queries = []
+
+    for keyword in keywords:
+        if keyword.startswith("0x"):
+            keyword_queries.append(Q("multi_match", query=keyword, fields=["address"]))
+        else:
+            keyword_queries.append(Q("multi_match", query=keyword, fields=["name","contract","type"]))
+        
+    combined_query = Q('bool', should=keyword_queries)
+    s = s.query(combined_query)
+
+    response = s.execute()
+    return response
+  
 @csrf_exempt
 def search_abi(request):
     if request.method == 'POST':
-        data = json.loads(request.body)
-        index_name = 'abi'
-        s = Search(using=es, index=index_name)
+        data = json.loads(request.body)        
         keywords = data["keywords"]
-        print(keywords)
-        keyword_queries = []
-
-        for keyword in keywords:
-            if keyword.startswith("0x"):
-                keyword_queries.append(Q("multi_match", query=keyword, fields=["address"]))
-            else:
-                keyword_queries.append(Q("multi_match", query=keyword, fields=["name","contract","type"]))
-
-        combined_query = Q('bool', should=keyword_queries)
-        s = s.query(combined_query)
-
-        response = s.execute()
-        data = json.dumps(response.to_dict()["hits"]["hits"])
+        res = search_abi_with_keywords(keywords)
+        data = json.dumps(res.to_dict()["hits"]["hits"])
         return HttpResponse(data, content_type='application/json')
     return HttpResponse(json.dumps([]), content_type='application/json')
 
 def search_results(request, keywords):
-    print(re.split("\s+", keywords))
-    index_name = 'abi'
-    s = Search(using=es, index=index_name)
-    field_to_match = 'type'  # Replace with the field name you want to match
-    value_to_match = 'contract'  # Replace with the value you want to search for
-
-    query = Q('match', type='contract')
-    s = s.query(query)
-    
-    response = s.execute()
+    res = search_abi_with_keywords(re.split("\s+", keywords))
     abis = []
-    for hit in response:
-        abis.append(hit.to_dict())
+    print(res)
+    for hit in res:
+        print(hit)
+        abis.append(hit)
     return render(request, 'abi/search_abi_template.html', {'abis': abis})
