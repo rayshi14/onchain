@@ -23,8 +23,16 @@ import eth_abi
 es = Elasticsearch("https://localhost:9200",http_auth=('elastic', 'y=fUp=8ucKL18I5K=1Am'),verify_certs=False)
 w3 = web3.Web3(web3.Web3.HTTPProvider(cfg.config["http_url"]))
 
+# internal
+def data_abi(id):
+    index_name = 'abi'
+    s = Search(using=es, index=index_name)
+    s = s.query('ids', values=[id])
+    
+    response = s.execute()
+    return response
 
-def add_contract_abi(contract_addr, impl_addr, contract_name, author = "rshi"):
+def add_abi(contract_addr, impl_addr, contract_name, author = "rshi"):
     def doc_id(contract_addr, abi):
         return hashlib.md5('{}/{}'.format(contract_addr,str(abi)).encode()).hexdigest()
     # if contract addr is different from impl addr
@@ -67,7 +75,8 @@ def add_contract_abi(contract_addr, impl_addr, contract_name, author = "rshi"):
 def index(request):
     return HttpResponse("Hello, world. You're at the abi index.")
   
-def contract_abi(request, contract_address):
+# data
+def data_contract_abi(request, contract_address):
     index_name = 'abi'
     s = Search(using=es, index=index_name)
     query = Q('bool',
@@ -82,7 +91,7 @@ def contract_abi(request, contract_address):
     data = json.dumps(response.to_dict()["hits"]["hits"][0])
     return HttpResponse(data, content_type='application/json')
   
-def function_abi(request, contract_address, function_name):
+def data_function_abi(request, contract_address, function_name):
     index_name = 'abi'
     s = Search(using=es, index=index_name)
     query = Q('bool',
@@ -98,11 +107,12 @@ def function_abi(request, contract_address, function_name):
     data = json.dumps(response.to_dict()["hits"]["hits"][0])
     return HttpResponse(data, content_type='application/json')
   
-def event_abi(request, contract_address, event_name):
+def data_event_abi(request, contract_address, event_name):
     data = json.dumps({"contract_address":contract_address,"event":event_name})
     return HttpResponse(data, content_type='application/json')
-  
-def add_abi(request):
+
+# apis
+def view_add_abi(request):
     success_message = ""
     error_message = ""
     if request.method == 'POST':
@@ -113,9 +123,10 @@ def add_abi(request):
             contract_addr = form.cleaned_data['contract_address']
             impl_addr = form.cleaned_data['impl_address']
             contract_name = form.cleaned_data['contract_name']
-            res = add_contract_abi(contract_addr, impl_addr, contract_name)
-            success_message = f"success {res}"
+            res = add_abi(contract_addr, impl_addr, contract_name)
+            success_message = f"success"
         else:
+            print(form.errors)
             error_message = "Form submission failed. Please check the errors below."
     else:
         # If this is a GET request, create a new form
@@ -171,7 +182,18 @@ def call_abi(request):
         return HttpResponse(data, content_type='application/json')
     else:
         return render(request, 'abi/call_abi_template.html')
-  
+
+@csrf_exempt
+def search_abi(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)        
+        keywords = data["keywords"]
+        res = search_abi_with_keywords(keywords)
+        data = json.dumps(res.to_dict()["hits"]["hits"])
+        return HttpResponse(data, content_type='application/json')
+    return HttpResponse(json.dumps([]), content_type='application/json')      
+
+# views
 def index(request):
     index_name = 'abi'
     s = Search(using=es, index=index_name)
@@ -205,22 +227,17 @@ def search_abi_with_keywords(keywords):
 
     response = s.execute()
     return response
-  
-@csrf_exempt
-def search_abi(request):
-    if request.method == 'POST':
-        data = json.loads(request.body)        
-        keywords = data["keywords"]
-        res = search_abi_with_keywords(keywords)
-        data = json.dumps(res.to_dict()["hits"]["hits"])
-        return HttpResponse(data, content_type='application/json')
-    return HttpResponse(json.dumps([]), content_type='application/json')
 
-def search_results(request, keywords):
+def view_search_results(request, keywords):
     res = search_abi_with_keywords(re.split("\s+", keywords))
     abis = []
-    print(res)
     for hit in res:
-        print(hit)
         abis.append(hit)
-    return render(request, 'abi/search_abi_template.html', {'abis': abis})
+    return render(request, 'abi/search_results_template.html', {'abis': abis})
+
+def view_abi(request, id):
+    abis = data_abi(id)
+    abi = {}
+    for abi0 in abis:
+        abi = abi0
+    return render(request, 'abi/view_abi_template.html', {'abi': abi})

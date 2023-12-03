@@ -1,0 +1,26 @@
+{% extends "abi/base_search_template.html" %}
+
+{% block title %}ChainKlik - View Abi{% endblock %}
+
+{% block content %}
+<div class="container p-1">
+    <div class="card p-d-flex w-100 justify-content-between">
+        <h5 class="card-header">{{abi.name}}
+            <span class="badge bg-dark mx-1">{{abi.contract}}</span>
+            {% if abi.type == "function" %}
+            <span class="badge bg-info">{{abi.type}}</span>
+            {% elif abi.type == "event" %}
+            <span class="badge bg-success">{{abi.type}}</span>
+            {% else %}
+            <span class="badge bg-secondary">{{abi.type}}</span>
+            {% endif %}  
+        </h5>
+        <div class="card-body">
+            <small class="card-subtitle mb-2 text-muted"><a href="https://etherscan.io/address/{{abi.address}}" class="card-link">{{abi.address}}</a></small>
+            <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
+            <p class="card-text">{{abi.abi}}</p>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

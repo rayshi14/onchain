@@ -9,14 +9,14 @@
         <div class="card d-flex w-100 justify-content-between border-0">
             <div class="card-body">
                 <div class="d-flex w-100 justify-content-between">
-                    <h5 class="card-title">{{ abi.name}} 
-                        <span class="badge bg-dark mx-1">{{ abi.contract}}</span>
+                    <h5 class="card-title">{{abi.name}} 
+                        <span class="badge bg-dark mx-1">{{abi.contract}}</span>
                         {% if abi.type == "function" %}
-                        <span class="badge bg-info">{{ abi.type}}</span>
+                        <span class="badge bg-info">{{abi.type}}</span>
                         {% elif abi.type == "event" %}
-                        <span class="badge bg-success">{{ abi.type}}</span>
+                        <span class="badge bg-success">{{abi.type}}</span>
                         {% else %}
-                        <span class="badge bg-secondary">{{ abi.type}}</span>
+                        <span class="badge bg-secondary">{{abi.type}}</span>
                         {% endif %}
                     </h5>
                     <small>3 days ago</small>

@@ -1,11 +1,9 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>My Form</title>
-</head>
-<body>
-    <h1>My Form</h1>
-    
+{% extends "abi/base_search_template.html" %}
+
+{% block title %}ChainKlik - Add Abi{% endblock %}
+
+{% block content %}
+<div class="p-3">
     {% if success_message %}
         <div class="alert alert-success">
             {{ success_message }}
@@ -17,11 +15,16 @@
             {{ error_message }}
         </div>
     {% endif %}
-    
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Submit</button>
+    <form method="Post">
+      {% csrf_token %}
+      {% for field in form %}
+      <div class="mb-3">
+          <label for="id_{{field.name}}" class="form-label">{{field.label}}</label>
+          <input type="text" name="{{field.name}}" class="form-control" id="id_{{field.name}}" aria-describedby="{{field.name}}_help">
+          <div id="{{field.name}}_help" class="form-text">{{field.errors}}</div>
+      </div>
+      {% endfor %}
+      <button type="submit" class="btn btn-primary">Submit</button>
     </form>
-</body>
-</html>
+</div>
+{% endblock %}
