@@ -1,0 +1,11 @@
+{% extends "abi/base_search_template.html" %}
+
+{% block title %}ChainKlik - Search Results{% endblock %}
+
+{% block content %}
+    <ul>
+        {% for abi in abis %}
+            <li>{{ abi.address }} - {{ abi.name }}</li>
+        {% endfor %}
+    </ul>
+{% endblock %}

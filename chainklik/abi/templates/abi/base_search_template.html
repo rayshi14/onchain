@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{% block title %}ChainKlik{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div>
+      <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0">
+          <a class="navbar-brand py-2 col-sm-3 col-md-2 mr-0" href="#">ChainKliK</a>
+          <div class="container position-relative top-0 left-0 p-0">
+              <input id="search-keywords" class="form-control form-control-dark w-100" type="text" placeholder="Search Diagrams" aria-label="Search"/>
+              <button id="button-search">Search</button>
+              <ul id="search-suggestions" class="list-group position-absolute top-100 w-100 d-none">
+              </ul>
+          </div>
+      </nav>
+      <script>
+          function delay(callback, ms) {
+              var timer = 0;
+              return function() {
+                  var context = this, args = arguments;
+                  clearTimeout(timer);
+                  timer = setTimeout(function () {
+                      callback.apply(context, args);
+                  }, ms || 0);
+              };
+          }
+
+          function searchAbi(keywords) {
+              data = {"keywords": keywords}
+              const requestOptions = {
+                  method: 'POST', // Use the POST method
+                  headers: {
+                      'Content-Type': 'application/json', // Set the content type to JSON
+                  },
+                  body: JSON.stringify(data), // Convert data to JSON format
+              };
+
+              console.log(data);
+
+              fetch(window.location.origin + '/abi/api/search_abi', requestOptions)
+                .then((response) => response.json())
+                .then((data) => {
+                    const listContainer = document.getElementById('search-suggestions');
+                    listContainer.innerHTML = "";
+                    $( "#search-suggestions" ).removeClass("d-none");
+                    data.forEach((item) => {
+                        console.log(item["_source"]);
+                        const a = document.createElement('a');
+                        a.className = "list-group-item rounded-0 p-2";
+                        a.href = "#";
+                        a.textContent = item["_source"]["name"];
+                        listContainer.appendChild(a);
+                    });
+                })
+                .catch((error) => {
+                    console.error('Error fetching data:', error);
+                });
+          }
+
+          $(document).ready(function () {
+              $('#button-search').on('click', function () {
+                  var keywords = $('#search-keywords').val();
+                  window.location.href = window.location.origin + '/abi/view/search_results/' + keywords;
+              });
+              $("#search-keywords").keyup(delay(function (e) {
+                  var keywords = $('#search-keywords').val().split(/(\s+)/).filter( function(e) { return e.trim().length > 0; });
+                  searchAbi(keywords);
+              }, 500));
+          });
+      </script>
+      <div>{% block content %}{% endblock %}</div>
+    </div>
+</body>
+</html>

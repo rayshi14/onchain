@@ -8,6 +8,7 @@ from datetime import datetime
 import hashlib
 import json
 import web3
+import re
 import requests
 
 from elasticsearch import Elasticsearch
@@ -186,19 +187,43 @@ def index(request):
         abis.append(hit.to_dict())
     
     return render(request, 'abi/index_template.html', {'abis': abis})
-  
-def search_abi(request, keywords):
+
+@csrf_exempt
+def search_abi(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        index_name = 'abi'
+        s = Search(using=es, index=index_name)
+        keywords = data["keywords"]
+        print(keywords)
+        keyword_queries = []
+
+        for keyword in keywords:
+            if keyword.startswith("0x"):
+                keyword_queries.append(Q("multi_match", query=keyword, fields=["address"]))
+            else:
+                keyword_queries.append(Q("multi_match", query=keyword, fields=["name","contract","type"]))
+
+        combined_query = Q('bool', should=keyword_queries)
+        s = s.query(combined_query)
+
+        response = s.execute()
+        data = json.dumps(response.to_dict()["hits"]["hits"])
+        return HttpResponse(data, content_type='application/json')
+    return HttpResponse(json.dumps([]), content_type='application/json')
+
+def search_results(request, keywords):
+    print(re.split("\s+", keywords))
     index_name = 'abi'
     s = Search(using=es, index=index_name)
-    keywords = keywords.split()
-    keyword_queries = []
-    
-    for keyword in keywords:
-        keyword_queries.append(Q("multi_match", query=keyword, fields=["_all"]))
+    field_to_match = 'type'  # Replace with the field name you want to match
+    value_to_match = 'contract'  # Replace with the value you want to search for
 
-    combined_query = Q('bool', should=keyword_queries)
-    s = s.query(combined_query)
+    query = Q('match', type='contract')
+    s = s.query(query)
     
     response = s.execute()
-    data = json.dumps(response.to_dict()["hits"]["hits"])
-    return HttpResponse(data, content_type='application/json')
+    abis = []
+    for hit in response:
+        abis.append(hit.to_dict())
+    return render(request, 'abi/search_abi_template.html', {'abis': abis})

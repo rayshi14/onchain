@@ -5,8 +5,6 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
-    <input type="text" id="search-keywords">
-    <button id="button-search-abi">Search</button>
     <input type="text" id="contract-addr">
     <button id="generate-function-list">Select</button>
     <div id="function-list-container"></div>
@@ -15,17 +13,6 @@
     <div id="function-call-response"></div>
     <script>
         $(document).ready(function () {
-            $('#button-search-abi').on('click', function () {
-                var keywords = $('#search-keywords').val();
-                fetch('/abi/api/search_abi/' + keywords)
-                    .then((response) => response.json())
-                    .then((data) => {
-                        console.log(data);    
-                    })
-                    .catch((error) => {
-                        console.error('Error fetching data:', error);
-                    });
-            });
             $('#generate-function-list').on('click', function () {
                 var contractAddr = $('#contract-addr').val();
                 fetch('/abi/data/' + contractAddr)

@@ -1,14 +1,6 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Abi List</title>
-</head>
-<body>
-    <h1>Abi List</h1>
-    <ul>
-        {% for abi in abis %}
-            <li>{{ abi.address }} - {{ abi.name }}</li>
-        {% endfor %}
-    </ul>
-</body>
-</html>
+{% extends "abi/base_search_template.html" %}
+
+{% block title %}ChainKlik - Search{% endblock %}
+
+{% block content %}
+{% endblock %}
