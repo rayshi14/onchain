@@ -46,7 +46,8 @@ def add_abi(contract_addr, impl_addr, contract_name, author = "rshi"):
         'contract' : contract_name,
         'type' : "contract",
         'name' : contract_name,
-        'abi': pool_contract.abi
+        'abi': pool_contract.abi,
+        'desc': contract_name
     }
     res = []
     resp = es.index(index='abi', id=doc['id'], document=doc)
@@ -63,7 +64,8 @@ def add_abi(contract_addr, impl_addr, contract_name, author = "rshi"):
                 'contract' : contract_name,
                 'type' : abi["type"],
                 'name' : abi["name"],
-                'abi': abi
+                'abi': abi,
+                'desc': ' '.join([contract_name, abi["name"], abi["type"]])
             }
             if abi["type"] == "function":
                 doc["stateMutability"] = abi["stateMutability"]
@@ -214,6 +216,7 @@ def search_abi_with_keywords(keywords):
     print(keywords)
     index_name = 'abi'
     s = Search(using=es, index=index_name)
+    s = s[0:100]
     keyword_queries = []
 
     for keyword in keywords:
@@ -240,4 +243,12 @@ def view_abi(request, id):
     abi = {}
     for abi0 in abis:
         abi = abi0
+    
+    abis = []
+    if abi["type"] == "contract": # load all abi members for this contract
+        for ret in search_abi_with_keywords([abi["address"]]):
+            if ret["type"] != "contract":
+                abis.append(ret)
+    
+    abi["abis"] = abis
     return render(request, 'abi/view_abi_template.html', {'abi': abi})
