@@ -56,7 +56,7 @@ def add_abi(contract_addr, impl_addr, contract_name, author = "rshi"):
     
     # save contract function and event abi
     for abi in pool_contract.abi:
-        if abi["type"] != "constructor":
+        if abi["type"] not in ["constructor","fallback","receive"]:
             doc = {
                 'author': 'rshi',
                 'timestamp': datetime.now(),
