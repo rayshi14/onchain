@@ -8,6 +8,11 @@
   font-size: 0.8em;
 }
 
+.table-sm input {
+  font-size: 0.7em;
+  width: 80%;
+}
+
 #search-suggestions {
   max-height: 40em;
   margin-bottom: 0.1em;

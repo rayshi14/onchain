@@ -161,12 +161,10 @@ def call_abi(request):
         
         def parse_function_abi(function_abi):
             inputs = {inp["name"]:inp["type"] for inp in function_abi["inputs"]}
-            outputs = {(out["name"] if out["name"] != "" else "value"):out["type"] for out in function_abi["outputs"]}
+            outputs = {out["name"]:out["type"] for out in function_abi["outputs"]}
             return {"inputs":inputs,"outputs":outputs}
         
         function_abi = parse_function_abi(response.to_dict()["hits"]["hits"][0]["_source"]["abi"])
-        
-        print(function_abi)
         
         def function_call(contract_address, function_name, function_abi, params, block_number):
             val = payload.func_call_payload(0, contract_address, function_name, function_abi, params, block_number)
@@ -249,10 +247,10 @@ def view_abi(request, id):
     if abi["type"] == "contract": # load all abi members for this contract
         for ret in search_abi_with_keywords([abi["address"]], size=100):
             if ret["type"] != "contract":
-                abis.append(ret)
-    
+                abis.append(ret.to_dict())
+    abi = abi.to_dict()
     abi["abis"] = abis
-    return render(request, 'abi/view_abi_template.html', {'abi': abi})
+    return render(request, "abi/view_abi_template.html", {"abi": abi})
 
 @csrf_exempt
 def view_edit_abi(request, id):
@@ -264,9 +262,9 @@ def view_edit_abi(request, id):
         print(abi.to_dict())
         abi = abi.to_dict()
         body = json.loads(request.body)
-        abi['desc'] = body['desc']
+        abi["desc"] = body["desc"]
         resp = es.index(index='abi', id=abi['id'], document=abi)
         time.sleep(1)
         return HttpResponse(json.dumps([]), content_type='application/json')     
 
-    return render(request, 'abi/edit_abi_template.html', {'abi': abi})
+    return render(request, 'abi/edit_abi_template.html', {"abi": abi})

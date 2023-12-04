@@ -8,6 +8,44 @@ $(document).ready(function () {
     $('#edit-button').on('click', function(){
         window.location.href = window.location.href + "/edit";
     });
+  
+    $('#query-button').on('click', function(){
+        const inputs_json = JSON.parse('{{ abi.abi.inputs|escapejs }}'.replace(/'/g, '"'));
+        var params = {};
+        inputs_json.forEach((input) => {
+            params[input["name"]] = $("#input-"+input["name"]).val();
+        });
+        console.log(params);
+        var data = {};
+                
+        data["name"] = "{{abi.name}}";
+        data["contract"] = "{{abi.address}}";
+        data["params"] = params;
+        console.log(data);
+        const requestOptions = {
+            method: 'POST', // Use the POST method
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data), // Convert data to JSON format
+        };
+                
+        fetch('/abi/api/call_abi', requestOptions)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json(); // Parse the response JSON if needed
+            })
+            .then(data => {
+                // Handle the response data here (e.g., display it on the page)
+                console.log('Response:', data);
+                for (var key in data){
+                    $("#output-"+key).text(data[key]);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    });
 });
 </script>
 <div class="container p-1">
@@ -44,7 +82,11 @@ $(document).ready(function () {
                             {% if abi.abi.inputs|length > 0 %}
                             <div class="card col w-50 m-1">
                                 <div class="card-body">
+                                    {% if abi.type == "event" %}
+                                    <h7 class="card-title">Events</h7>
+                                    {% else %}
                                     <h7 class="card-title">Inputs</h7>
+                                    {% endif %}
                                     <table class="table table-sm table-striped">
                                       <thead>
                                         <tr>
@@ -91,7 +133,7 @@ $(document).ready(function () {
                     </div>
                 </div>
                 {% endfor %}
-            {% else %}
+            {% elif abi.type == "function" %}
             <div class="row m-1">
                 {% if abi.abi.inputs|length > 0 %}
                 <div class="card col w-50 m-1">
@@ -102,6 +144,7 @@ $(document).ready(function () {
                             <tr>
                               <th scope="col">Name</th>
                               <th scope="col">Type</th>
+                              <th scope="col">Value</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -109,6 +152,7 @@ $(document).ready(function () {
                             <tr>
                               <td>{{input.name}}</td>
                               <td>{{input.type}}</td>
+                              <td><input id="input-{{input.name}}" type="text" class="form-control" placeholder="{{input.name}} ({{input.type}})"></td>
                             </tr>
                             {% endfor %}
                           </tbody>
@@ -125,6 +169,7 @@ $(document).ready(function () {
                             <tr>
                               <th scope="col">Name</th>
                               <th scope="col">Type</th>
+                              <th scope="col">Value</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -132,6 +177,34 @@ $(document).ready(function () {
                             <tr>
                               <td>{{output.name}}</td>
                               <td>{{output.type}}</td>
+                              <td id="output-{{output.name}}"></td>
+                            </tr>
+                            {% endfor %}
+                          </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            <div class="row m-1"><button id="query-button" type="button" class="btn btn-dark btn-sm col-3 m-auto">Query</button></div>
+            {% else %}
+            <div class="row m-1">
+                {% if abi.abi.inputs|length > 0 %}
+                <div class="card col w-50 m-1">
+                    <div class="card-body">
+                        <h7 class="card-title">Events</h7>
+                        <table class="table table-sm table-striped">
+                          <thead>
+                            <tr>
+                              <th scope="col">Name</th>
+                              <th scope="col">Type</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {% for input in abi.abi.inputs %}
+                            <tr>
+                              <td>{{input.name}}</td>
+                              <td>{{input.type}}</td>
                             </tr>
                             {% endfor %}
                           </tbody>

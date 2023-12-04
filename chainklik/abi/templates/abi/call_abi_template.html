@@ -87,7 +87,7 @@
                     body: JSON.stringify(data), // Convert data to JSON format
                 };
                 
-                fetch('/abi/api/call_abi/', requestOptions)
+                fetch('/abi/api/call_abi', requestOptions)
                     .then(response => {
                         if (!response.ok) {
                             throw new Error('Network response was not ok');
