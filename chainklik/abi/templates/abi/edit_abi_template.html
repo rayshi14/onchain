@@ -1,0 +1,109 @@
+{% extends "abi/base_search_template.html" %}
+
+{% block title %}ChainKlik - View Abi{% endblock %}
+
+{% block content %}
+<script>
+$(document).ready(function () {
+    console.log("{{abi.desc}}");
+    $('#abi-desc').val("{{abi.desc}}");
+    $('#save-button').on('click', function(){
+        var data = {};
+        data["id"] = '{{ abi.id }}';
+        data["desc"] = $("#abi-desc").val();
+        const requestOptions = {
+            method: 'POST', // Use the POST method
+            headers: {
+                'Content-Type': 'application/json', // Set the content type to JSON
+            },
+            body: JSON.stringify(data), // Convert data to JSON format
+        };
+
+        fetch(window.location.href, requestOptions)
+          .then((response) => response.json())
+          .then((data) => {
+              console.log(data);
+              window.location.href = "/abi/view/view_abi/{{abi.id}}";
+          })
+          .catch((error) => {
+              console.error('Error fetching data:', error);
+          });
+    });
+});
+</script>
+<div class="container p-1">
+    <div class="card p-d-flex w-100 justify-content-between">
+        <div class="card-header d-flex w-100 justify-content-between">
+          <h5>{{abi.name}}
+              <span class="badge bg-dark mx-1"><a class="list-group-item" href="/abi/view/view_abi/{{abi.contract_id}}">{{abi.contract}}</a></span>
+              {% if abi.type == "function" %}
+              <span class="badge bg-info">{{abi.type}}</span>
+              {% elif abi.type == "event" %}
+              <span class="badge bg-success">{{abi.type}}</span>
+              {% else %}
+              <span class="badge bg-secondary">{{abi.type}}</span>
+              {% endif %}
+          </h5>
+          <button id="save-button" type="button" class="btn btn-light">Save</button>
+        </div>
+        <div class="card-body">
+            <small class="card-subtitle mb-2 text-muted"><a href="https://etherscan.io/address/{{abi.address}}" class="card-link">{{abi.address}}</a></small>
+            <div class="input-group p-2">
+              <span class="input-group-text">Description</span>
+              <textarea id="abi-desc" class="form-control" aria-label="With textarea"></textarea>
+            </div>
+            {% if abi.type != "contract" %}
+            <div class="row m-1">
+                {% if abi.abi.inputs|length > 0 %}
+                <div class="card col w-50 m-1">
+                    <div class="card-body">
+                        <h7 class="card-title">Inputs</h7>
+                        <table class="table table-sm table-striped">
+                          <thead>
+                            <tr>
+                              <th scope="col">Name</th>
+                              <th scope="col">Type</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {% for input in abi.abi.inputs %}
+                            <tr>
+                              <td>{{input.name}}</td>
+                              <td>{{input.type}}</td>
+                            </tr>
+                            {% endfor %}
+                          </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% endif %}
+                {% if abi.abi.outputs|length > 0 %}
+                <div class="card col w-50 m-1">
+                    <div class="card-body">
+                        <h7 class="card-title">Outputs</h7>
+                        <table class="table table-sm table-striped">
+                          <thead>
+                            <tr>
+                              <th scope="col">Name</th>
+                              <th scope="col">Type</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {% for output in abi.abi.outputs %}
+                            <tr>
+                              <td>{{output.name}}</td>
+                              <td>{{output.type}}</td>
+                            </tr>
+                            {% endfor %}
+                          </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}

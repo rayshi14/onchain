@@ -8,6 +8,7 @@ from datetime import datetime
 import hashlib
 import json
 import web3
+import time
 import re
 import requests
 
@@ -190,7 +191,7 @@ def search_abi(request):
     if request.method == 'POST':
         data = json.loads(request.body)        
         keywords = data["keywords"]
-        res = search_abi_with_keywords(keywords)
+        res = search_abi_with_keywords(keywords, size=100)
         data = json.dumps(res.to_dict()["hits"]["hits"])
         return HttpResponse(data, content_type='application/json')
     return HttpResponse(json.dumps([]), content_type='application/json')      
@@ -212,11 +213,11 @@ def index(request):
     
     return render(request, 'abi/index_template.html', {'abis': abis})
 
-def search_abi_with_keywords(keywords):
+def search_abi_with_keywords(keywords, size = 10):
     print(keywords)
     index_name = 'abi'
     s = Search(using=es, index=index_name)
-    s = s[0:100]
+    s = s[0:size]
     keyword_queries = []
 
     for keyword in keywords:
@@ -232,7 +233,7 @@ def search_abi_with_keywords(keywords):
     return response
 
 def view_search_results(request, keywords):
-    res = search_abi_with_keywords(re.split("\s+", keywords))
+    res = search_abi_with_keywords(re.split("\s+", keywords), size=100)
     abis = []
     for hit in res:
         abis.append(hit)
@@ -246,9 +247,26 @@ def view_abi(request, id):
     
     abis = []
     if abi["type"] == "contract": # load all abi members for this contract
-        for ret in search_abi_with_keywords([abi["address"]]):
+        for ret in search_abi_with_keywords([abi["address"]], size=100):
             if ret["type"] != "contract":
                 abis.append(ret)
     
     abi["abis"] = abis
     return render(request, 'abi/view_abi_template.html', {'abi': abi})
+
+@csrf_exempt
+def view_edit_abi(request, id):
+    abis = data_abi(id)
+    abi = {}
+    for abi0 in abis:
+        abi = abi0
+    if request.method == 'POST':
+        print(abi.to_dict())
+        abi = abi.to_dict()
+        body = json.loads(request.body)
+        abi['desc'] = body['desc']
+        resp = es.index(index='abi', id=abi['id'], document=abi)
+        time.sleep(1)
+        return HttpResponse(json.dumps([]), content_type='application/json')     
+
+    return render(request, 'abi/edit_abi_template.html', {'abi': abi})

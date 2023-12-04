@@ -8,8 +8,7 @@
                   <div class="input-group-append m-0">
                       <button id="button-search" class="btn btn-dark" type="button">Search</button>
                   </div>
-                  <ul id="search-suggestions" class="list-group position-absolute top-100 w-100 d-none">
-                  </ul>
+                  <ul id="search-suggestions" class="list-group position-absolute top-100 w-100 d-none"></ul>
               </div>
           </div>
           <ul class="navbar-nav px-3 m-auto">
@@ -48,12 +47,30 @@
                     const listContainer = document.getElementById('search-suggestions');
                     listContainer.innerHTML = "";
                     $( "#search-suggestions" ).removeClass("d-none");
+                
                     data.forEach((item) => {
                         console.log(item["_source"]);
                         const a = document.createElement('a');
                         a.className = "list-group-item rounded-0 p-2";
                         a.href = "#";
                         a.textContent = item["_source"]["name"];
+                        const badge = document.createElement('span');
+                        badge.className = "badge bg-dark mx-1";
+                        badge.innerHTML = item["_source"]["contract"];
+                        const badgeType = document.createElement('span');
+                        badgeType.innerHTML = item["_source"]["type"];
+                        badgeType.className = "badge";
+                        if (item["_source"]["type"] == "contract") {
+                            badgeType.classList.add("bg-secondary");
+                        } else if (item["_source"]["type"] == "function") {
+                            badgeType.classList.add("bg-info");
+                        } else {
+                            badgeType.classList.add("bg-success");
+                        }
+                        
+                        a.onmousedown = function() {window.location.href = "/abi/view/view_abi/" + item["_source"]["id"];};
+                        a.appendChild(badge);
+                        a.appendChild(badgeType);
                         listContainer.appendChild(a);
                     });
                 })
@@ -65,7 +82,7 @@
           $(document).ready(function () {
               $('#button-search').on('click', function () {
                   var keywords = $('#search-keywords').val();
-                  window.location.href = window.location.origin + '/abi/view/view_search_results/' + keywords;
+                  window.location.href = window.location.origin + '/abi/view/view_results/' + keywords;
               });
               $("#search-keywords").keyup(delay(function (e) {
                   var keywords = $('#search-keywords').val().split(/(\s+)/).filter( function(e) { return e.trim().length > 0; });

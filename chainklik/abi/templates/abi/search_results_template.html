@@ -6,7 +6,7 @@
 <div class="list-group">
     {% for abi in abis %}
     <li class="list-group-item">
-        <div class="card d-flex w-100 justify-content-between border-0">
+        <div class="card d-flex w-100 justify-content-between">
             <div class="card-body">
                 <div class="d-flex w-100 justify-content-between">
                     <h5 class="card-title">{{abi.name}} 
@@ -14,7 +14,7 @@
                         {% if abi.type == "function" %}
                         <span class="badge bg-info">{{abi.type}}</span>
                         {% elif abi.type == "event" %}
-                        <span class="badge bg-success">{{abi.type}}</span>
+                        <span class="badge bg-secondary">{{abi.type}}</span>
                         {% else %}
                         <span class="badge bg-secondary">{{abi.type}}</span>
                         {% endif %}
@@ -22,7 +22,7 @@
                     <small>3 days ago</small>
                 </div>
                 <small class="card-subtitle mb-2 text-muted"><a href="https://etherscan.io/address/{{abi.address}}" class="card-link">{{abi.address}}</a></small>
-                <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                <p class="card-text">{{abi.desc}}</p>
                 <a href="#" class="card-link">Link</a>
             </div>
         </div>

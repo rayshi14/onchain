@@ -7,3 +7,10 @@
 .table-sm {
   font-size: 0.8em;
 }
+
+#search-suggestions {
+  max-height: 40em;
+  margin-bottom: 0.1em;
+  overflow:scroll;
+  -webkit-overflow-scrolling: touch;
+}

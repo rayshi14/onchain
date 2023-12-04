@@ -3,18 +3,28 @@
 {% block title %}ChainKlik - View Abi{% endblock %}
 
 {% block content %}
+<script>
+$(document).ready(function () {
+    $('#edit-button').on('click', function(){
+        window.location.href = window.location.href + "/edit";
+    });
+});
+</script>
 <div class="container p-1">
     <div class="card p-d-flex w-100 justify-content-between">
-        <h5 class="card-header">{{abi.name}}
-            <span class="badge bg-dark mx-1">{{abi.contract}}</span>
-            {% if abi.type == "function" %}
-            <span class="badge bg-info">{{abi.type}}</span>
-            {% elif abi.type == "event" %}
-            <span class="badge bg-success">{{abi.type}}</span>
-            {% else %}
-            <span class="badge bg-secondary">{{abi.type}}</span>
-            {% endif %}  
-        </h5>
+        <div class="card-header d-flex w-100 justify-content-between">
+          <h5>{{abi.name}}
+              <span class="badge bg-dark mx-1"><a class="list-group-item" href="{{abi.contract_id}}">{{abi.contract}}</a></span>
+              {% if abi.type == "function" %}
+              <span class="badge bg-info">{{abi.type}}</span>
+              {% elif abi.type == "event" %}
+              <span class="badge bg-success">{{abi.type}}</span>
+              {% else %}
+              <span class="badge bg-secondary">{{abi.type}}</span>
+              {% endif %}
+          </h5>
+          <button id="edit-button" type="button" class="btn btn-light">Edit</button>
+        </div>
         <div class="card-body">
             <small class="card-subtitle mb-2 text-muted"><a href="https://etherscan.io/address/{{abi.address}}" class="card-link">{{abi.address}}</a></small>
             <p class="card-text">{{abi.desc}}</p>
