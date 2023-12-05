@@ -33,16 +33,16 @@ def data_abi(id):
     response = s.execute()
     return response
 
-def add_abi(contract_addr, impl_addr, contract_name, source_code_link, author = "rshi"):
-    def doc_id(contract_addr, abi):
-        return hashlib.md5('{}/{}'.format(contract_addr,str(abi)).encode()).hexdigest()
+def add_abi(chain, contract_addr, impl_addr, contract_name, source_code_link, author = "rshi"):
+    def doc_id(chain, contract_addr, abi):
+        return hashlib.md5('{}/{}/{}'.format(chain, contract_addr,str(abi)).encode()).hexdigest()
     # if contract addr is different from impl addr
     pool_contract = etherscan.get_contract(contract_addr,impl_addr)
     # save contract abi
     doc = {
         'author': 'rshi',
         'timestamp': datetime.now(),
-        'id' : doc_id(contract_addr, pool_contract.abi),
+        'id' : doc_id(chain, contract_addr, pool_contract.abi),
         'address' : contract_addr,
         'contract' : contract_name,
         'type' : "contract",
@@ -61,7 +61,7 @@ def add_abi(contract_addr, impl_addr, contract_name, source_code_link, author = 
             doc = {
                 'author': 'rshi',
                 'timestamp': datetime.now(),
-                'id' : doc_id(contract_addr, abi),
+                'id' : doc_id(chain, contract_addr, abi),
                 'address' : contract_addr,
                 'contract' : contract_name,
                 'type' : abi["type"],
@@ -125,11 +125,12 @@ def view_add_abi(request):
         form = AbiForm(request.POST)
         if form.is_valid():
             # Form data is valid, perform actions with the data
+            chain = form.cleaned_data['chain']
             contract_addr = form.cleaned_data['contract_address']
             impl_addr = form.cleaned_data['impl_address']
             contract_name = form.cleaned_data['contract_name']
             source_code_link = form.cleaned_data['source_code']
-            res = add_abi(contract_addr, impl_addr, contract_name, source_code_link)
+            res = add_abi(chain, contract_addr, impl_addr, contract_name, source_code_link)
             success_message = f"success"
         else:
             print(form.errors)
@@ -225,7 +226,7 @@ def search_abi_with_keywords(keywords, size = 10):
         if keyword.startswith("0x"):
             keyword_queries.append(Q("multi_match", query=keyword, fields=["address"]))
         else:
-            keyword_queries.append(Q("multi_match", query=keyword, fields=["name","contract","type"]))
+            keyword_queries.append(Q("multi_match", query=keyword, fields=["name","contract","type","source_code"]))
         
     combined_query = Q('bool', should=keyword_queries)
     s = s.query(combined_query)
@@ -265,7 +266,8 @@ def view_edit_abi(request, id):
         print(abi.to_dict())
         abi = abi.to_dict()
         body = json.loads(request.body)
-        abi["desc"] = body["desc"]
+        for key in body:
+            abi[key] = body[key]
         resp = es.index(index='abi', id=abi['id'], document=abi)
         time.sleep(1)
         return HttpResponse(json.dumps([]), content_type='application/json')     

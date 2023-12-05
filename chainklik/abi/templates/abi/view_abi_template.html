@@ -51,20 +51,22 @@ $(document).ready(function () {
 <div class="container p-1">
     <div class="card p-d-flex w-100 justify-content-between">
         <div class="card-header d-flex w-100 justify-content-between">
-          <h5>{{abi.name}}
-              <span class="badge bg-dark mx-1"><a class="list-group-item" href="{{abi.contract_id}}">{{abi.contract}}</a></span>
+          <h6>{{abi.name}}
+              <span class="badge bg-secondary mb-1">{{abi.chain}}</span>
+              <span class="badge bg-dark mb-1"><a class="list-group-item" href="{{abi.contract_id}}">{{abi.contract}}</a></span>
               {% if abi.type == "function" %}
-              <span class="badge bg-info">{{abi.type}}</span>
+              <span class="badge bg-info mb-1">{{abi.type}}</span>
               {% elif abi.type == "event" %}
-              <span class="badge bg-success">{{abi.type}}</span>
+              <span class="badge bg-success mb-1">{{abi.type}}</span>
               {% else %}
-              <span class="badge bg-secondary">{{abi.type}}</span>
+              <span class="badge bg-primary mb-1">{{abi.type}}</span>
               {% endif %}
-          </h5>
-          <button id="edit-button" type="button" class="btn btn-light">Edit</button>
+          </h6>
+          <button id="edit-button" type="button" class="btn btn-sm btn-light"><i class="fa-solid fa-pen-to-square"></i></button>
         </div>
         <div class="card-body">
             <small class="card-subtitle mb-2 text-muted"><a href="https://etherscan.io/address/{{abi.address}}" class="card-link">{{abi.address}}</a></small>
+            <a href="{{abi.source_code}}" class="card-link link-dark"><i class="fa-brands fa-github"></i></a>
             <p class="card-text">{{abi.desc}}</p>
             {% if abi.type == "contract" %}
                 {% for abi in abi.abis %}
@@ -77,17 +79,17 @@ $(document).ready(function () {
                             <span class="badge bg-success">{{abi.type}}</span>
                             {% endif %}
                         </h7>
-                        <p class="card-text fs-6">{{abi.desc}}</p>
+                        <p class="card-text">{{abi.desc}}</p>
                         <div class="row">
                             {% if abi.abi.inputs|length > 0 %}
-                            <div class="card col w-50 m-1">
-                                <div class="card-body">
+                            <div class="card col w-50 mx-1">
+                                <div class="card-body p-1">
                                     {% if abi.type == "event" %}
-                                    <h7 class="card-title">Events</h7>
+                                    <span class="card-title">Events</span>
                                     {% else %}
-                                    <h7 class="card-title">Inputs</h7>
+                                    <span class="card-title">Inputs</span>
                                     {% endif %}
-                                    <table class="table table-sm table-striped">
+                                    <table class="table table-sm table-striped mb-1">
                                       <thead>
                                         <tr>
                                           <th scope="col">Name</th>
@@ -107,10 +109,10 @@ $(document).ready(function () {
                             </div>
                             {% endif %}
                             {% if abi.abi.outputs|length > 0 %}
-                            <div class="card col w-50 m-1">
-                                <div class="card-body">
-                                    <h7 class="card-title">Outputs</h7>
-                                    <table class="table table-sm table-striped">
+                            <div class="card col w-50 mx-1">
+                                <div class="card-body p-1">
+                                    <span class="card-title">Outputs</span>
+                                    <table class="table table-sm table-striped mb-1">
                                       <thead>
                                         <tr>
                                           <th scope="col">Name</th>

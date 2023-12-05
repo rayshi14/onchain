@@ -7,10 +7,11 @@
 $(document).ready(function () {
     console.log("{{abi.desc}}");
     $('#abi-desc').val("{{abi.desc}}");
+    $('#abi-source-code').val("{{abi.source_code}}");
     $('#save-button').on('click', function(){
         var data = {};
-        data["id"] = '{{ abi.id }}';
         data["desc"] = $("#abi-desc").val();
+        data["source_code"] = $("#abi-source-code").val();
         const requestOptions = {
             method: 'POST', // Use the POST method
             headers: {
@@ -51,6 +52,10 @@ $(document).ready(function () {
             <div class="input-group p-2">
               <span class="input-group-text">Description</span>
               <textarea id="abi-desc" class="form-control" aria-label="With textarea"></textarea>
+            </div>
+            <div class="input-group p-2">
+              <span class="input-group-text">Source Code Link</span>
+              <input id="abi-source-code" type="text" class="form-control">
             </div>
             {% if abi.type != "contract" %}
             <div class="row m-1">

@@ -9,8 +9,10 @@ class EthAddressField(forms.CharField):
             raise forms.ValidationError('Enter a valid ethereum address value.', code='invalid_eth_address')
 
 class AbiForm(forms.Form):
+    chain = forms.CharField(label='Chain', max_length=100)
     contract_address = EthAddressField(label='Contract Address', max_length=100)
     impl_address = EthAddressField(label='Implementaion Address', max_length=100)
     contract_name = forms.CharField(label='Contract Name', max_length=100)
     contract_description = forms.CharField(label='Contract Description', max_length=500)
     source_code = forms.CharField(label='Source Code Link', max_length=500)
+    

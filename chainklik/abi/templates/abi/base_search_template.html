@@ -6,7 +6,7 @@
               <div class="input-group w-100 p-1">
                   <input id="search-keywords" class="form-control form-control-dark" type="text" placeholder="Search" aria-label="Search"/>
                   <div class="input-group-append m-0">
-                      <button id="button-search" class="btn btn-dark" type="button">Search</button>
+                      <button id="button-search" class="btn btn-dark" type="button"><i class="fa-solid fa-magnifying-glass"></i></button>
                   </div>
                   <ul id="search-suggestions" class="list-group position-absolute top-100 w-100 d-none"></ul>
               </div>
@@ -54,14 +54,17 @@
                         a.className = "list-group-item rounded-0 p-2";
                         a.href = "#";
                         a.textContent = item["_source"]["name"];
-                        const badge = document.createElement('span');
-                        badge.className = "badge bg-dark mx-1";
-                        badge.innerHTML = item["_source"]["contract"];
+                        const badgeChain = document.createElement('span');
+                        badgeChain.className = "badge bg-secondary mx-1";
+                        badgeChain.innerHTML = item["_source"]["chain"];
+                        const badgeContract = document.createElement('span');
+                        badgeContract.className = "badge bg-dark mx-1";
+                        badgeContract.innerHTML = item["_source"]["contract"];
                         const badgeType = document.createElement('span');
                         badgeType.innerHTML = item["_source"]["type"];
-                        badgeType.className = "badge";
+                        badgeType.className = "badge mx-1";
                         if (item["_source"]["type"] == "contract") {
-                            badgeType.classList.add("bg-secondary");
+                            badgeType.classList.add("bg-primary");
                         } else if (item["_source"]["type"] == "function") {
                             badgeType.classList.add("bg-info");
                         } else {
@@ -69,7 +72,8 @@
                         }
                         
                         a.onmousedown = function() {window.location.href = "/abi/view/view_abi/" + item["_source"]["id"];};
-                        a.appendChild(badge);
+                        a.appendChild(badgeChain);
+                        a.appendChild(badgeContract);
                         a.appendChild(badgeType);
                         listContainer.appendChild(a);
                     });
