@@ -9,7 +9,7 @@
         <div class="card d-flex w-100 justify-content-between">
             <div class="card-body">
                 <div class="d-flex w-100 justify-content-between">
-                    <h5 class="card-title">{{abi.name}} 
+                    <h5 class="card-title"><a href="/abi/view/view_abi/{{abi.id}}">{{abi.name}}</a>
                         <span class="badge bg-dark mx-1">{{abi.contract}}</span>
                         {% if abi.type == "function" %}
                         <span class="badge bg-info">{{abi.type}}</span>
@@ -23,7 +23,7 @@
                 </div>
                 <small class="card-subtitle mb-2 text-muted"><a href="https://etherscan.io/address/{{abi.address}}" class="card-link">{{abi.address}}</a></small>
                 <p class="card-text">{{abi.desc}}</p>
-                <a href="#" class="card-link">Link</a>
+                <a href="{{abi.source_code}}" class="card-link"><small>Source Code</small></a>
             </div>
         </div>
     </li>

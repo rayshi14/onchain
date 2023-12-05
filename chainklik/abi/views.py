@@ -33,7 +33,7 @@ def data_abi(id):
     response = s.execute()
     return response
 
-def add_abi(contract_addr, impl_addr, contract_name, author = "rshi"):
+def add_abi(contract_addr, impl_addr, contract_name, source_code_link, author = "rshi"):
     def doc_id(contract_addr, abi):
         return hashlib.md5('{}/{}'.format(contract_addr,str(abi)).encode()).hexdigest()
     # if contract addr is different from impl addr
@@ -48,7 +48,8 @@ def add_abi(contract_addr, impl_addr, contract_name, author = "rshi"):
         'type' : "contract",
         'name' : contract_name,
         'abi': pool_contract.abi,
-        'desc': contract_name
+        'desc': contract_name,
+        "source_code" : source_code_link
     }
     res = []
     resp = es.index(index='abi', id=doc['id'], document=doc)
@@ -66,7 +67,8 @@ def add_abi(contract_addr, impl_addr, contract_name, author = "rshi"):
                 'type' : abi["type"],
                 'name' : abi["name"],
                 'abi': abi,
-                'desc': ' '.join([contract_name, abi["name"], abi["type"]])
+                'desc': ' '.join([contract_name, abi["name"], abi["type"]]),
+                "source_code" : source_code_link
             }
             if abi["type"] == "function":
                 doc["stateMutability"] = abi["stateMutability"]
@@ -126,7 +128,8 @@ def view_add_abi(request):
             contract_addr = form.cleaned_data['contract_address']
             impl_addr = form.cleaned_data['impl_address']
             contract_name = form.cleaned_data['contract_name']
-            res = add_abi(contract_addr, impl_addr, contract_name)
+            source_code_link = form.cleaned_data['source_code']
+            res = add_abi(contract_addr, impl_addr, contract_name, source_code_link)
             success_message = f"success"
         else:
             print(form.errors)
