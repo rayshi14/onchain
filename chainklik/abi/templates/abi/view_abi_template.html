@@ -25,6 +25,7 @@ $(document).ready(function () {
         data["contract"] = "{{abi.address}}";
         data["params"] = params;
         data["history"] = $("#output-history").val();
+        data["step"] = $("#output-history").find("option:selected").attr("data");
         console.log(data);
         const requestOptions = {
             method: 'POST', // Use the POST method
@@ -46,7 +47,7 @@ $(document).ready(function () {
                 var labels = [];
                 var values = {};
                 for (var key in data["latest"]){
-                    $("#output-"+key).text(data["latest"][key]);
+                    $("#output-value-"+key).text(data["latest"][key]*(10**-$("#output-decimal-"+key).val()));
                     values[key] = [];
                 }
                 
@@ -54,7 +55,7 @@ $(document).ready(function () {
                 
                 data["history"]["data"].forEach((d) => {
                     for (var key in d){
-                        values[key].push(d[key]);
+                        values[key].push(d[key]*(10**-$("#output-decimal-"+key).val()));
                     }
                 });
           
@@ -68,6 +69,7 @@ $(document).ready(function () {
                 }
                 console.log(datasets);
                 const ctx = document.getElementById('historyDataChart');
+                ctx.className = "";
                 var configuration = {
                   type: 'line',
                   data: {
@@ -208,15 +210,18 @@ $(document).ready(function () {
                     <div class="card-body">
                         <h7 class="card-title">Outputs</h7>
                         <select id="output-history" class="inline form-select form-select-sm">
-                            <option selected value=1>Latest</option>
-                            <option value=7>1 Week</option>
-                            <option value=30>1 Month</option>
+                            <option selected value=1 data=1>Latest</option>
+                            <option value=30 data=3>1 Week</option>
+                            <option value=90 data=7>3 Month</option>
+                            <option value=180 data=14>6 Month</option>
+                            <option value=365 data=30>1 Year</option>
                         </select>
                         <table class="table table-sm table-striped">
                           <thead>
                             <tr>
                               <th scope="col">Name</th>
                               <th scope="col">Type</th>
+                              <th scope="col">Decimals</th>
                               <th scope="col">Value</th>
                             </tr>
                           </thead>
@@ -225,7 +230,12 @@ $(document).ready(function () {
                             <tr>
                               <td>{{output.name}}</td>
                               <td>{{output.type}}</td>
-                              <td id="output-{{output.name}}"></td>
+                              <td>
+                                {% if "int" in output.type %}
+                                <input type="number" id="output-decimal-{{output.name}}" class="input-decimal form-control" min="0" step="1" value=18>
+                                {% endif %}
+                              </td>
+                              <td id="output-value-{{output.name}}"></td>
                             </tr>
                             {% endfor %}
                           </tbody>
@@ -262,7 +272,7 @@ $(document).ready(function () {
                 {% endif %}
             </div>
             {% endif %}
-            <canvas id="historyDataChart" width="400" height="100"></canvas>
+            <canvas id="historyDataChart" class="d-none"></canvas>
         </div>
     </div>
 </div>

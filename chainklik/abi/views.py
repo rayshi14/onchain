@@ -154,6 +154,7 @@ def call_abi(request):
         function_name = data["name"]
         params = data["params"]
         history = int(data["history"])
+        step = int(data["step"])
         # get function abi
         index_name = 'abi'
         s = Search(using=es, index=index_name)
@@ -205,13 +206,13 @@ def call_abi(request):
         
         latest_block = w3.eth.get_block("latest")["number"]
         result = function_call(contract_address, function_name, function_abi, params, hex(latest_block))
-        
-        results = function_call_batch(contract_address, function_name, function_abi, params, [hex(bn) for bn in range(latest_block-history,latest_block)])
+        block_range = list(range(latest_block-history*7200,latest_block,7200*step))
+        results = function_call_batch(contract_address, function_name, function_abi, params, [hex(bn) for bn in block_range])
         print(results)
         data = {}
         data["latest"] = result
         data["history"] = {}
-        data["history"]["eventTime"] = list(range(latest_block-history,latest_block))
+        data["history"]["eventTime"] = block_range
         data["history"]["data"] = results
         data = json.dumps(data)
         return HttpResponse(data, content_type='application/json')

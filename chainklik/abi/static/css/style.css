@@ -16,6 +16,10 @@ body {
   font-size: 0.8em;
   width: 80%;
 }
+.table-sm .input-decimal {
+  font-size: 0.8em;
+  width: 100%;
+}
 
 #search-suggestions {
   max-height: 40em;
