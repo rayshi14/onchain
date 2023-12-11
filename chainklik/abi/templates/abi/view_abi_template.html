@@ -3,8 +3,11 @@
 {% block title %}ChainKlik - View Abi{% endblock %}
 
 {% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 $(document).ready(function () {
+    let chart;
+  
     $('#edit-button').on('click', function(){
         window.location.href = window.location.href + "/edit";
     });
@@ -21,6 +24,7 @@ $(document).ready(function () {
         data["name"] = "{{abi.name}}";
         data["contract"] = "{{abi.address}}";
         data["params"] = params;
+        data["history"] = $("#output-history").val();
         console.log(data);
         const requestOptions = {
             method: 'POST', // Use the POST method
@@ -37,10 +41,47 @@ $(document).ready(function () {
             })
             .then(data => {
                 // Handle the response data here (e.g., display it on the page)
-                console.log('Response:', data);
-                for (var key in data){
-                    $("#output-"+key).text(data[key]);
+                console.log(data["latest"]);
+                console.log(data["history"]);
+                var labels = [];
+                var values = {};
+                for (var key in data["latest"]){
+                    $("#output-"+key).text(data["latest"][key]);
+                    values[key] = [];
                 }
+                
+                var datasets = [];
+                
+                data["history"]["data"].forEach((d) => {
+                    for (var key in d){
+                        values[key].push(d[key]);
+                    }
+                });
+          
+                console.log(values);
+                for (var key in data["latest"]){
+                    datasets.push({
+                      animation: false,
+                      label: key,
+                      data: values[key]
+                    });
+                }
+                console.log(datasets);
+                const ctx = document.getElementById('historyDataChart');
+                var configuration = {
+                  type: 'line',
+                  data: {
+                    labels: data["history"]["eventTime"],
+                    datasets: datasets
+                  }
+                }
+                if (chart) {
+                  chart.destroy();
+                  chart = new Chart(ctx, configuration);
+                } else {
+                  chart = new Chart(ctx, configuration);
+                }
+          
             })
             .catch(error => {
                 console.error('Error:', error);
@@ -166,6 +207,11 @@ $(document).ready(function () {
                 <div class="card col w-50 m-1">
                     <div class="card-body">
                         <h7 class="card-title">Outputs</h7>
+                        <select id="output-history" class="inline form-select form-select-sm">
+                            <option selected value=1>Latest</option>
+                            <option value=7>1 Week</option>
+                            <option value=30>1 Month</option>
+                        </select>
                         <table class="table table-sm table-striped">
                           <thead>
                             <tr>
@@ -215,7 +261,8 @@ $(document).ready(function () {
                 </div>
                 {% endif %}
             </div>
-            {% endif %}  
+            {% endif %}
+            <canvas id="historyDataChart" width="400" height="100"></canvas>
         </div>
     </div>
 </div>

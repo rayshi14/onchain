@@ -141,6 +141,11 @@ def view_add_abi(request):
 
     return render(request, 'abi/add_abi_template.html', {'form': form, 'success_message': success_message, 'error_message': error_message})
 
+def get_block_numbers(dates):
+    block_numbers = []
+    for d in dates:
+        block_numbers.append()
+  
 @csrf_exempt
 def call_abi(request):
     if request.method == 'POST':
@@ -148,7 +153,7 @@ def call_abi(request):
         contract_address = data["contract"]
         function_name = data["name"]
         params = data["params"]
-        print(params)
+        history = int(data["history"])
         # get function abi
         index_name = 'abi'
         s = Search(using=es, index=index_name)
@@ -180,10 +185,35 @@ def call_abi(request):
             result = {keys[i]: values[i] for i in range(len(keys))}
             return result
         
-        print(params)
-        result = function_call(contract_address, function_name, function_abi, params, hex(w3.eth.get_block("latest")["number"]))
-        print(result)
-        data = json.dumps(result)
+        def function_call_batch(contract_address, function_name, function_abi, params, block_numbers):
+            vals = []
+            for block_number in block_numbers:
+                val = payload.func_call_payload(0, contract_address, function_name, function_abi, params, block_number)
+                vals.append(val)
+            resps = requests.post(cfg.config["http_url"], json=vals)
+            
+            outputs = function_abi["outputs"]
+            keys = list(outputs.keys())
+            
+            results = []
+            print(resps.json())
+            for resp in resps.json():
+                values = eth_abi.decode(list(outputs.values()), bytes.fromhex(resp["result"][2:]))
+                result = {keys[i]: values[i] for i in range(len(keys))}
+                results.append(result)
+            return results
+        
+        latest_block = w3.eth.get_block("latest")["number"]
+        result = function_call(contract_address, function_name, function_abi, params, hex(latest_block))
+        
+        results = function_call_batch(contract_address, function_name, function_abi, params, [hex(bn) for bn in range(latest_block-history,latest_block)])
+        print(results)
+        data = {}
+        data["latest"] = result
+        data["history"] = {}
+        data["history"]["eventTime"] = list(range(latest_block-history,latest_block))
+        data["history"]["data"] = results
+        data = json.dumps(data)
         return HttpResponse(data, content_type='application/json')
     else:
         return render(request, 'abi/call_abi_template.html')
@@ -191,7 +221,7 @@ def call_abi(request):
 @csrf_exempt
 def search_abi(request):
     if request.method == 'POST':
-        data = json.loads(request.body)        
+        data = json.loads(request.body)
         keywords = data["keywords"]
         res = search_abi_with_keywords(keywords, size=100)
         data = json.dumps(res.to_dict()["hits"]["hits"])
