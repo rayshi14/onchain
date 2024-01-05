@@ -24,7 +24,7 @@ class TxNode(Node):
                 'from': self.wallet,
                 'to': self.to,
                 'value': self.w3.to_wei(self.amount, 'ether'),
-                'nonce': self.w3.eth.get_transaction_count(self.wallet) + ctx["pending_txs"][self.wallet],
+                'nonce': self.w3.eth.get_transaction_count(self.wallet),
                 'gas': self.gas, 
                 'maxFeePerGas': max_fee_per_gas, # Maximum amount you’re willing to pay 
                 'maxPriorityFeePerGas': max_priority_fee_per_gas, # Priority fee to include the transaction in the block
@@ -32,23 +32,21 @@ class TxNode(Node):
             }
 
             print('New transaction.', self.id)
-            ctx["pending_txs"][self.wallet] += 1
             transaction = self.w3.eth.account.sign_transaction(transaction_params, self.pk)
-            self.transaction_hash = self.w3.eth.send_raw_transaction(transaction.rawTransaction)
+            transaction_hash = self.w3.eth.send_raw_transaction(transaction.rawTransaction)
+            transaction_receipt = self.w3.eth.wait_for_transaction_receipt(transaction_hash)
+
+            if transaction_receipt.status:
+                print('Transaction successful!', self.id)
+                self.tx_block = transaction_receipt["blockNumber"]
+                self.finalized = False
+                self.active = True
+            else:
+                print('Transaction failed.', self.id)
+                self.finalized = True
+                self.active = False
             
-            print('Transaction sent!', self.id)
-            self.tx_block = ctx["block_time"]
-            self.finalized = False
-            self.active = True
         elif ctx["block_time"] - self.tx_block >= self.finality:
-            try:
-                tx = self.w3.eth.get_transaction(self.transaction_hash)
-                print(tx)
-                if tx["blockNumber"] is not None and ctx["block_time"] - tx["blockNumber"] >= self.finality:
-                    print('Transaction finalized.', self.id)
-                    ctx["pending_txs"][self.wallet] -= 1
-                    self.finalized = True
-                    self.active = True
-            except Exception as e:
-                ctx["pending_txs"][self.wallet] -= 1
-                print(e)
+            print('Transaction finalized.', self.id)   
+            self.finalized = True
+            self.active = True
