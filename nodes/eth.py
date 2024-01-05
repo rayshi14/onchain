@@ -43,10 +43,12 @@ class TxNode(Node):
         elif ctx["block_time"] - self.tx_block >= self.finality:
             try:
                 tx = self.w3.eth.get_transaction(self.transaction_hash)
-                print('Transaction finalized.', self.id, tx)
-                ctx["pending_txs"][self.wallet] -= 1
-                self.finalized = True
-                self.active = True
+                print(tx)
+                if tx["blockNumber"] is not None and ctx["block_time"] - tx["blockNumber"] >= self.finality:
+                    print('Transaction finalized.', self.id)
+                    ctx["pending_txs"][self.wallet] -= 1
+                    self.finalized = True
+                    self.active = True
             except Exception as e:
-                ctx["pending_tx"][self.wallet] -= 1
+                ctx["pending_txs"][self.wallet] -= 1
                 print(e)
