@@ -30,8 +30,8 @@ class TxNode(Node):
 
             print('New transaction.', self.id)
             transaction = self.w3.eth.account.sign_transaction(transaction_params, self.pk)
-            transaction_hash = self.w3.eth.send_raw_transaction(transaction.rawTransaction)
-            transaction_receipt = self.w3.eth.wait_for_transaction_receipt(transaction_hash)
+            self.transaction_hash = self.w3.eth.send_raw_transaction(transaction.rawTransaction)
+            transaction_receipt = self.w3.eth.wait_for_transaction_receipt(self.transaction_hash)
 
             if transaction_receipt.status:
                 print('Transaction successful!', self.id)
@@ -44,6 +44,8 @@ class TxNode(Node):
                 self.active = False
             
         elif ctx[self.params["chain"]]["block_time"] - self.tx_block >= self.finality:
-            print('Transaction finalized.', self.id)
+            # check if finalized
+            tx = self.w3.eth.get_transaction(self.transaction_hash)
+            print('Transaction finalized.', self.id, tx)
             self.finalized = True
             self.active = True

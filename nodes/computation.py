@@ -6,7 +6,7 @@ class AddNode(Node):
         super().__init__(id, deps, params)
 
     def run(self, ctx: dict, values: dict):
-        self.output = values[self.deps["left"]] + values[self.deps["right"]]
+        self.output = values["in1"] + values["in2"]
         self.active = True
         self.finalized = True
         
@@ -16,6 +16,6 @@ class CumNode(Node):
         self.output = 0
 
     def run(self, ctx: dict, values: dict):
-        self.output += values[self.deps["in"]]
+        self.output += values["in"]
         self.active = True
         self.finalized = True
