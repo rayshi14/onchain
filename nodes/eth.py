@@ -4,12 +4,9 @@ from .base import *
 class TxNode(Node):
     def __init__(self, id: str, deps: dict, params: dict, w3: Web3, pk: str):
         super().__init__(id, deps, params)
-        self.wallet = params["wallet"]
-        self.to = params["to"]
-        self.amount = params["amount"]
         self.finality = params["finality"] if "finality" in params else 2
         self.gas = params["gas"] if "gas" in params else 21000
-        self.output = self.amount
+        self.output = self.params["amount"]
         self.w3 = w3
         self.pk = pk
     
@@ -21,10 +18,10 @@ class TxNode(Node):
             max_fee_per_gas = (5 * base_fee_per_gas) + max_priority_fee_per_gas # Maximum amount you’re willing to pay 
             
             transaction_params = {
-                'from': self.wallet,
-                'to': self.to,
-                'value': self.w3.to_wei(self.amount, 'ether'),
-                'nonce': self.w3.eth.get_transaction_count(self.wallet),
+                'from': self.params["wallet"],
+                'to': self.params["to"],
+                'value': self.w3.to_wei(self.params["amount"], 'ether'),
+                'nonce': self.w3.eth.get_transaction_count(self.params["wallet"]),
                 'gas': self.gas, 
                 'maxFeePerGas': max_fee_per_gas, # Maximum amount you’re willing to pay 
                 'maxPriorityFeePerGas': max_priority_fee_per_gas, # Priority fee to include the transaction in the block
@@ -46,7 +43,7 @@ class TxNode(Node):
                 self.finalized = True
                 self.active = False
             
-        elif ctx["block_time"] - self.tx_block >= self.finality:
+        elif ctx[self.params["chain"]]["block_time"] - self.tx_block >= self.finality:
             print('Transaction finalized.', self.id)
             self.finalized = True
             self.active = True

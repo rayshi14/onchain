@@ -16,12 +16,13 @@ class Timer(ABC):
         pass
         
 class BlockTimer(Timer):
-    def __init__(self, start, end, frequency):
+    def __init__(self, start, end, frequency, chain):
         super().__init__(start, end, frequency)
+        self.chain = chain
 
     def is_active(self, ctx):
-        if ctx["block_time"] - self.start >= 0:
-            self.start = ((ctx["block_time"] - self.start) // self.frequency + 1) * self.frequency + self.start
+        if ctx[self.chain]["block_time"] - self.start >= 0:
+            self.start = ((ctx[self.chain]["block_time"] - self.start) // self.frequency + 1) * self.frequency + self.start
             return True
         else:
             return False
