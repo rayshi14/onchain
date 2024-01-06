@@ -46,6 +46,11 @@ class TxNode(Node):
         elif ctx[self.params["chain"]]["block_time"] - self.tx_block >= self.finality:
             # check if finalized
             tx = self.w3.eth.get_transaction(self.transaction_hash)
-            print('Transaction finalized.', self.id, tx)
-            self.finalized = True
-            self.active = True
+            if tx["blockNumber"] is not None:
+                print('Transaction finalized.', self.id, tx)
+                self.finalized = True
+                self.active = True
+            else:
+                print('Transaction failed.', self.id)
+                self.finalized = True
+                self.active = False
