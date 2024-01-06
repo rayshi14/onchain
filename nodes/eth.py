@@ -9,7 +9,7 @@ class TxNode(Node):
         self.amount = params["amount"]
         self.finality = params["finality"] if "finality" in params else 2
         self.gas = params["gas"] if "gas" in params else 21000
-        self.output = None
+        self.output = self.amount
         self.w3 = w3
         self.pk = pk
     
@@ -47,6 +47,6 @@ class TxNode(Node):
                 self.active = False
             
         elif ctx["block_time"] - self.tx_block >= self.finality:
-            print('Transaction finalized.', self.id)   
+            print('Transaction finalized.', self.id)
             self.finalized = True
             self.active = True
